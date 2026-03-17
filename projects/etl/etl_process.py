@@ -3,7 +3,7 @@ import pandas as pd
 import logging
 import urllib.parse
 from sqlalchemy import create_engine
-from data_quality_report import run_data_quality_tests, generate_data_quality_report
+from data_quality_report import run_data_quality_tests, generate_json_data_quality_report
 
 logging.basicConfig(
     level=logging.INFO,
@@ -15,7 +15,7 @@ logging.basicConfig(
 )
 
 
-def extract_data(file_path: str) -> pd.DataFrame:
+def extract_data_from_csv(file_path: str) -> pd.DataFrame:
     try:
         df = pd.read_csv(file_path)
         return df
@@ -24,7 +24,7 @@ def extract_data(file_path: str) -> pd.DataFrame:
         raise
 
 
-def transform_data(df: pd.DataFrame) -> pd.DataFrame:
+def process_data(df: pd.DataFrame) -> pd.DataFrame:
     boolean_mapping = {"Yes": True, "No": False}
 
     df["Returned"] = df["Returned"].map(boolean_mapping)
@@ -78,13 +78,13 @@ def main():
     db_table = "clean_sales_data"
 
     try:
-        df = extract_data(input_file)
+        df = extract_data_from_csv(input_file)
         
         logging.info("Running Data Quality Tests...")
         dq_results = run_data_quality_tests(df)
-        generate_data_quality_report(dq_results, dq_report_file)
+        generate_json_data_quality_report(dq_results, dq_report_file)
 
-        clean_df = transform_data(df)
+        clean_df = process_data(df)
 
         load_data_to_csv(clean_df, output_file)
 

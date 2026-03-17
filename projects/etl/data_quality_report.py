@@ -12,11 +12,9 @@ def run_data_quality_tests(df: pd.DataFrame) -> dict:
         "duplicate_checks": {},
     }
 
-    # Count missing values for all columns
     null_counts = df.isnull().sum()
     report["null_checks"] = null_counts[null_counts > 0].to_dict()
 
-    # Example: Check for negative values in columns that should be strictly positive
     if "TransactionAmount" in df.columns:
         invalid_amounts = df[df["TransactionAmount"] < 0]
         report["range_checks"]["negative_transaction_amounts"] = len(invalid_amounts)
@@ -31,10 +29,8 @@ def run_data_quality_tests(df: pd.DataFrame) -> dict:
         ]
         report["range_checks"]["out_of_bounds_discount"] = len(invalid_discounts)
 
-    # Check for completely identical rows
     report["duplicate_checks"]["exact_row_duplicates"] = int(df.duplicated().sum())
 
-    # Check for duplicate Primary Keys (TransactionID)
     if "TransactionID" in df.columns:
         report["duplicate_checks"]["duplicate_transaction_ids"] = int(
             df.duplicated(subset=["TransactionID"]).sum()
@@ -43,7 +39,7 @@ def run_data_quality_tests(df: pd.DataFrame) -> dict:
     return report
 
 
-def generate_data_quality_report(dq_results: dict, output_path: str):
+def generate_json_data_quality_report(dq_results: dict, output_path: str):
     """Saves the data quality results dict to a nicely formatted JSON report file."""
     try:
         with open(output_path, "w") as f:
